@@ -20,7 +20,8 @@ use Illuminate\Support\Facades\{
     DB, 
     Mail, 
     Hash, 
-    Http
+    Http,
+    Validator
 };
 use App\Actions\Fortify\{
     CreateNewUser, 
@@ -36,7 +37,7 @@ class AuthService
     public function login(LoginRequest $request)
     {
         try{
-            $user = User::where("email", $request->email)->first();
+            $user = User::where(['email' => $request['email']])->first();
             if(!$user || !password_verify($request->password, $user->password)):
                 $message = "Wrong credentials";
                 return CustomResponse::error($message, 400);
@@ -119,7 +120,7 @@ class AuthService
     {
         $user = User::where(['email' => $request['email']])->first();
         $token = mt_rand(1000, 9999);
-        $expiry_time = Carbon::now()->addMinutes(6);
+        $expiry_time = Carbon::now()->addMinutes(30);
 
         try{
             PasswordReset::updateOrCreate([
@@ -142,11 +143,6 @@ class AuthService
 
     public function verifyResetToken(Request $request)
     {
-        $validator = Validator::make($request, [
-            'email' => 'required|email',
-            'token' => 'required|numeric|exists:password_resets'
-        ]);
-
         $tokenedUser = DB::table('password_resets')
         ->where([
             'token' => $request['token'], 

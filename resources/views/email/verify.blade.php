@@ -13,7 +13,7 @@
 <div style="font-family: 'Dancing Script', cursive;">
     Hi {{ $user->firstname." ".$user->lastname }} ,
     <br>
-    Thank you for creating an account with us at Workpro. Verify your account to complete the registration!
+    Thank you for creating an account with us at Peddle. Verify your account to complete the registration!
     <br>
     Please click on the link below or copy it into the address bar of your browser to confirm your email address:
     <br>

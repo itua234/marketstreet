@@ -65,12 +65,13 @@ Route::group(['prefix' => 'v1', 'middleware' => ['auth:sanctum']],function(){
         Route::post("/send-push-notification", [UserController::class, "sendPushNotification"]);
         Route::get("/{userId}/reports", [UserController::class, "fetchReports"]);
     });
+    Route::get("/states/", [UserController::class, "fetchStates"]);
 
     Route::group([
         'prefix' => 'category'
     ], function () {
         Route::get("/", [ProductController::class, "getCategories"]);
-        //Route::post("/store", [ProductController::class, "createCategories"]);
+        Route::post("/store", [ProductController::class, "createCategories"]);
         Route::get("/{categoryId}/products", [ProductController::class, "getProducts"]);
     });
 
@@ -83,27 +84,31 @@ Route::group(['prefix' => 'v1', 'middleware' => ['auth:sanctum']],function(){
         Route::post("/update/{id}", [ProductController::class, "update"]);
         Route::delete("/{id}", [ProductController::class, "destroy"]);
         Route::post("{id}/dropship", [ProductController::class, "dropship"]);
+        Route::get("/search/{query}/", [ProductController::class, "searchProducts"]);
 
         Route::get("/{userId}/products", [ProductController::class, "getAllUserProducts"]);
+
+        Route::post("/test/store", [ProductController::class, "createProducts"]);
     });
 
     Route::get("/products", [ProductController::class, "FetchAllStoreProducts"]);
+    Route::get("/products/trending", [ProductController::class, "fetchTrendingProducts"]);
     Route::get("/products/{min}/{max}", [ProductController::class, "FetchProductsByPrice"]);
     Route::get("/wishlist/", [ProductController::class, "getWishlist"]);
-    Route::post("/wishlist/{id}", [ProductController::class, "addProductToWishlist"]);
+    Route::post("/wishlist/{id}/{action}", [ProductController::class, "Wishlist"]);
 
     Route::group([
         'prefix' => 'order'
     ], function () {
         Route::post("/", [OrderController::class, "order"]);
+        Route::get("/{orderId}/", [OrderController::class, "fetchBuyerOrderData"]);
+        Route::get("/sales/{orderId}/", [OrderController::class, "fetchSellerOrderData"]);
         Route::post("/send-invoice", [OrderController::class, "sendInvoice"]);
         Route::post("/invoice-payment", [OrderController::class, "invoicePayment"]);
     });
 
-    Route::get("/buyer/get-all-orders", [OrderController::class, "listOrdersForBuyer"]);
-    Route::get("/{id}", [OrderController::class, "show"]);
-    Route::get("/seller/get-all-orders", [OrderController::class, "listOrdersForSeller"]);
-    Route::get("/seller/order/{id}", [OrderController::class, "showOrderSeller"]);
+    Route::get("/user/{id}/orders", [OrderController::class, "listBuyerOrders"]);
+    Route::get("/user/{id}/sub-orders", [OrderController::class, "listSellerOrders"]);
 
     Route::get("/coupon/{code}", [OrderController::class, "fetchCouponData"]);
 

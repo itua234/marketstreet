@@ -3,9 +3,8 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Models\User;
 
-class UserResource extends JsonResource
+class PurchaseResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,13 +15,13 @@ class UserResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'id' => $this->id,
-            "firstname" => $this->firstname,
-            "lastname" => $this->lastname,
-            "email" => $this->email,
-            "phone" => $this->phone,
-            "photo" => $this->photo,
-            "rating" => $this->profile['rating']
+            "id" => $this->id,
+            "order_no" => $this->order_no,
+            "total" => $this->total,
+            "order_status" => $this->order_status,
+            "created_at" => $this->created_at,
+            "contents" => $this->resource['items'],
+            "address" => $this->address
         ];
     }
 }

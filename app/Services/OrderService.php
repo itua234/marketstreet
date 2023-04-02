@@ -11,7 +11,9 @@ use App\Util\{
     Helper
 };
 use App\Http\Resources\{
-    ProductResource
+    ProductResource,
+    SalesResource,
+    PurchaseResource
 };
 use App\Http\Requests\{
     CreateOrder, 
@@ -144,44 +146,106 @@ class OrderService
         endif;
     }
 
-    public function listBuyerOrders()
+    public function listBuyerOrders($id)
     {
-        $user = auth()->user();
-        $orders = User::find($user->id)->orders;
-        if(!$orders) return CustomResponse::error('No orders found', 404);
-
-        return CustomResponse::success("Orders:", $orders);
+        $user = User::find($id);
+        $orders = $user->orders;
+        $items = [];
+        foreach($orders as $order):
+            $subOrders = $order->subOrders;
+            foreach($subOrders as $subOrder):
+                $orderNo = $subOrder->order_no;
+                $contents = $subOrder->contents;
+                foreach($contents as $content):
+                    $status = $content->status;
+                    $product = $content->product;
+                    $item = [
+                        'id' => $content->id,
+                        'product_name' => $product->name,
+                        'status' => $status,
+                        'order_number'=> $orderNo,
+                        'amount' => $content->price,
+                        'brand_name' => $product->brand,
+                        'images' => $product->images
+                    ];
+                    array_push($items, (object) $item);
+                endforeach;
+            endforeach;
+           //  $order->items = $items;
+        endforeach;
+        //$orders = PurchaseResource::collection($orders);
+        return CustomResponse::success("Orders:", $items);
     }
 
-    public function listSellerOrders()
+    public function listSellerOrders($id)
     {
-        $user = auth()->user();
-        $orders = User::find($user->id)->subOrders;
-        if(!$orders) return CustomResponse::error('No orders found', 404);
-
-        return CustomResponse::success("Orders:", $orders);
+        $user = User::find($id);
+        $subOrders = $user->subOrders;
+        $items = [];
+        foreach($subOrders as $subOrder):
+            $orderNo = $subOrder->order_no;
+            $contents = $subOrder->contents;
+            foreach($contents as $content):
+                $status = $content->status;
+                $product = $content->product;
+                    $item = [
+                        'id' => $content->id,
+                        'product_name' => $product->name,
+                        'payment' => $content->payment,
+                        'status' => $status,
+                        'order_number'=> $orderNo,
+                        'amount' => $content->price,
+                        'brand_name' => $product->brand,
+                        'images' => $product->images
+                    ];
+                    array_push($items, (object) $item);
+            endforeach;
+            //$subOrder->contents = $items;
+        endforeach;
+        //$subOrders = SalesResource::collection($subOrders);
+        return CustomResponse::success("Orders:", $items);
     }
 
-    public function show($id)
+    public function fetchBuyerOrderData($orderId)
     {
-        $order = Order::find($id);
-        if(!$order) return CustomResponse::error('No order found', 404);
+        $content = OrderContent::find($orderId);
+        $product = $content->product;
+        $subOrder = $content->subOrder;
+        $items = [];
+        $item = [
+            'id' => $content->id,
+            'product_name' => $product->name,
+            'status' => $content->status,
+            'order_number'=> $subOrder->order_no,
+            'amount' => $content->price,
+            'brand_name' => $product->brand,
+            'images' => $product->images
+        ];
+        array_push($items, (object) $item);
+        if(!$content) return CustomResponse::error('No order found', 404);
 
-        return CustomResponse::success("Order Details:", $order);
+        return CustomResponse::success("Order Details:", $items);
     }
 
-    public function test()
+    public function fetchSellerOrderData($orderId)
     {
-        /*$url = 'http://res.cloudinary.com/dxhlsyysg/image/upload/v1664489429/aqgyd43nyjie2dqgxhcl.jpg';
-        $parts = explode('/', $url);
-        $count = count($parts);
-        $explode = explode('.', $parts[$count - 1]);
-        $response = \Cloudinary\Uploader::destroy($explode[0]);
-        return $response;*/
-        return User::find(1)->subOrders;
-        return SubOrder::find(1)->products;
-        return SubOrder::find(1)->contents;
-        return Product::find(1)->orders;
+        $content = OrderContent::find($orderId);
+        $product = $content->product;
+        $subOrder = $content->subOrder;
+        $items = [];
+        $item = [
+            'id' => $content->id,
+            'product_name' => $product->name,
+            'status' => $content->status,
+            'order_number'=> $subOrder->order_no,
+            'amount' => $content->price,
+            'brand_name' => $product->brand,
+            'images' => $product->images
+        ];
+        array_push($items, (object) $item);
+        if(!$content) return CustomResponse::error('No order found', 404);
+
+        return CustomResponse::success("Order Details:", $items);
     }
 
     public function sendInvoice(CreateInvoice $request)
@@ -275,6 +339,18 @@ class OrderService
 
     public function fetchCouponData($code)
     {
+        $validator = Validator::make([
+            'code' => $code,
+        ], [
+            'code' => 'required|string',
+        ]);
+        if($validator->fails()):
+            return response([
+                'message' => $validator->errors()->first(),
+                'error' => $validator->getMessageBag()->toArray()
+            ], 422);
+        endif;
+
         $coupon = DB::table('coupons')
         ->where([
             'code' => $code

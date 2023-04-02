@@ -23,7 +23,7 @@ class VerifyAccountMail extends Mailable
 
     public function build()
     {
-        return $this->from(getenv('MAIL_FROM_ADDRESS'), "MarketStreet")
+        return $this->from(getenv('MAIL_FROM_ADDRESS'), "Peddle")
         ->subject("Verify your Marketstreet account.")
         ->view('email.verify');
     }

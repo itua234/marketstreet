@@ -26,7 +26,8 @@ use App\Models\{
     User, 
     BankAccount,
     EmailNotification,
-    PushNotification
+    PushNotification,
+    State
 };
 
 class UserService
@@ -121,7 +122,7 @@ class UserService
         $validator = Validator::make($request->all(), [
             'user.firstname' => 'required|string',
             'user.lastname' => 'required|string',
-            'user.phone' => ['required', 'numeric', 'min:11', 'unique:users,phone'],
+            'user.phone' => ['required', 'numeric', 'min:11'],
             'profile.address' => ['string'],
             'profile.state' => ['string']
         ]);
@@ -133,6 +134,14 @@ class UserService
         endif;
 
         $user = auth()->user();
+        $check = User::where('phone', $request['user']['phone'])->first();
+        if($check):
+            if($user->id !== $check->id):
+                $message = "phone number has been used";
+                return CustomResponse::error($message, 400);
+            endif;
+        endif;
+
         $user->firstname = $request["user"]["firstname"];
         $user->lastname = $request["user"]["lastname"];
         $user->phone = $request["user"]["phone"];
@@ -195,7 +204,7 @@ class UserService
                 'error' => $validator->getMessageBag()->toArray()
             ], 422);
         endif;
-
+        
         $user = auth()->user();
         $notify = EmailNotification::find($user->email);
         $notify->is_subscribed = $request['notify'];
@@ -343,6 +352,12 @@ class UserService
             "reviews" => $profile->reviews
         ];
         return CustomResponse::success("Report:", $report);
+    }
+
+    public function fetchStates()
+    {
+        $states = State::all();
+        return CustomResponse::success("States:", $states);
     }
 
 }

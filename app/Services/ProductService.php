@@ -194,9 +194,20 @@ class ProductService
         $product = Product::find($id);
         if(!$product) return CustomResponse::error('Product not found', 404);
 
-        foreach($product->images as $image):
-            $image->delete();
-        endforeach;
+        $dropship = Dropship::where('original_product_id', $id)->first();
+        if($dropship):
+            $dropship->delete();
+            $product_dropship = Product::find($dropship->dropship_product_id);
+            $product_dropship->delete();
+        endif;
+
+        $wishlist = Wishlist::where('product_id', $id)->get();
+        if($wishlist):
+            foreach($wishlist as $list):
+                $list->delete();
+            endforeach;
+        endif;
+
         $product->delete();
         $message = "Product deleted";
         return CustomResponse::success($message, null);
@@ -210,21 +221,16 @@ class ProductService
 
     public function createCategories(Request $request)
     {
-        /*foreach($request->category as $category){
-            DB::table('categories')
-            ->insert([
-                "name" => $category,
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now()
+        $response = Http::acceptJson()
+            //->withToken($this->secretKey)
+                ->get('https://dummyjson.com/products/categories');
+        $response = json_decode($response);
+        foreach($response as $category){
+            Category::create([
+                'name' => $category,
             ]);
         }
-
-        $categories = Category::create([
-            'name' => $request['name'],
-            'slug' => isset($request['slug']) ? $request['slug'] : NULL,
-            'image' => '',
-            'description' => ''
-        ]);*/
+        return 'categories has been created';
 
         return CustomResponse::success("Categories:", NULL);
     }
@@ -309,12 +315,14 @@ class ProductService
         return CustomResponse::success("Products:", $products);
     }
 
-    public function addProductToWishlist($id)
+    public function Wishlist($id, $action)
     {
         $validator = Validator::make([
-            'id' => $id
+            'id' => $id,
+            'action' => $action
         ], [
             'id' => 'required|integer',
+            'action' => 'required|string',
         ]);
         if($validator->fails()):
             return response([
@@ -344,8 +352,14 @@ class ProductService
             $message = "Product has been added to wishlist";
             $data = $wishlist;
         else:
-            $data = null;
-            $message = "Product has already been added to wishlist";
+            if($action === 'add'):
+                $data = null;
+                $message = "Product has already been added to wishlist";
+            elseif($action === 'remove'):
+                $data = null;
+                $message = "Product has been removed from wishlist";
+                $check->delete();
+            endif;
         endif;
         
         return CustomResponse::success($message, $data);
@@ -384,5 +398,106 @@ class ProductService
 
         return CustomResponse::success("Products:", $products);
     }
+
+    public function fetchTrendingProducts()
+    {
+        
+    }
+
+    public function searchProducts($query)
+    {
+        $products = Product::where('name', 'LIKE', '%'.$query.'%')
+        ->with('category')
+        ->without('reviews', 'owner')
+        ->get();
+        /*$category = Category::where('name', 'LIKE', '%'.$query.'%')->get();
+        if(!$category):
+            echo 'soa';
+        else:
+            echo 'poi';
+        endif;*/
+        return CustomResponse::success("Products:", $products);
+    }
     
+    public function getRandomProducts()
+    {
+        $response = Http::acceptJson()
+            //->withToken($this->secretKey)
+                ->get('https://dummyjson.com/products/?limit=50');
+        $response = json_decode($response);
+        return $response->products;
+    }
+
+    public function getProductDetails($product, $type)
+    {
+        $_product =  array_rand($product, 1);
+        $shipping = mt_rand(200, 500);
+
+        if($type == 'name'):
+            return $product[$_product]->title;
+        elseif($type == 'brand'):
+            return $product[$_product]->brand;
+        elseif($type == 'stock'):
+            return $product[$_product]->stock;
+        elseif($type == 'price'):
+            return $product[$_product]->price;
+        elseif($type == 'description'):
+            return $product[$_product]->description;
+        elseif($type == 'shipping'):
+            return $shipping;
+        elseif($type == 'category'):
+            $category = Category::where('name', $product[$_product]->category)->first();
+            return $category->id;
+        elseif($type == 'photo'):
+            return $product[$_product]->images;
+        endif;
+    }
+
+    public function createProducts(Request $request)
+    {
+        $products = $this->getRandomProducts();
+        return $products;
+        /*$name = $this->getProductDetails($products,'name');
+        $brand = $this->getProductDetails($products, 'brand');
+        $stock = $this->getProductDetails($products,'stock');
+        $price = $this->getProductDetails($products,'price');
+        $description = $this->getProductDetails($products,'description');
+        $shipping = $this->getProductDetails($products,'shipping');
+        $category = $this->getProductDetails($products,'category');
+        $images = $this->getProductDetails($products,'photo');*/
+        foreach($products as $product):
+            $name = $product->title;
+            $brand = $product->brand;
+            $stock = $product->stock;
+            $price = $product->price;
+            $description = $product->description;
+            $shipping = mt_rand(200, 500);
+            $images = $product->images;
+            $category = Category::where('name', $product->category)->first();
+            $is_negotiable = mt_rand(0,1);
+
+            $product = Product::create([
+                'seller_id' => auth()->user()->id,
+                'category_id' => $category->id,
+                'name' => $name,
+                'brand' => $brand,
+                'stock' => $stock,
+                'price' => $price,
+                'description' => $description,
+                'shipping_cost' => $shipping,
+                'is_negotiable' => $is_negotiable
+            ]);
+            
+            foreach($images as $photo):
+                ProductImage::create([
+                    'url' => $photo,
+                    'product_id' => $product->id
+                ]);
+            endforeach;
+        endforeach;
+
+        $message = count($products)." products has been created";
+        return CustomResponse::success($message, null);
+    }
+
 }

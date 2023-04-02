@@ -24,7 +24,7 @@ return new class extends Migration
             $table->integer('subcharge')->unsigned();
             $table->string('reference')->unique();
             $table->enum('payment_status', ['pending', 'success', 'failed'])->default('pending');
-            $table->enum('order_status', ['pending', 'shipped', 'delivered', 'confirmed', 'paid'])->default('pending');
+            $table->enum('status', ['pending', 'delivered', 'cancelled'])->default('pending');
             $table->enum('payment_channel', ['FLUTTERWAVE', 'PAYSTACK'])->nullable();
             $table->boolean('verified')->default(0);
             $table->string('coupon_code')->nullable();

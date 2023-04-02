@@ -21,8 +21,7 @@ return new class extends Migration
             $table->foreign('seller_id')->references('id')->on('users')->onDelete('cascade');
             $table->string('order_no');
             $table->integer('total');
-            //$table->enum('payment_status', ['pending', 'success', 'failed'])->default('pending');
-            $table->enum('order_status', ['pending', 'completed', 'cancelled', 'in progress'])->default('pending');
+            $table->enum('status', ['pending', 'paid', 'cancelled'])->default('pending');
             $table->timestamps();
         });
     }

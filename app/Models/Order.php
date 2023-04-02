@@ -29,11 +29,19 @@ class Order extends Model
     ];
 
     protected $hidden = [
-        'created_at',
+        'updated_at',
         'verified'
     ];
 
     protected $with = ['subOrders', 'address'];
+
+    protected function createdAt(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => Carbon::parse($value)->toFormattedDateString(),
+            set: fn ($value) => $value,
+        );
+    }
     
     protected function updatedAt(): Attribute
     {

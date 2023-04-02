@@ -117,7 +117,7 @@ class User extends Authenticatable
     public function getEmailNotificationAttribute()
     {
         $notify = EmailNotification::find($this->email)->pluck('is_subscribed')[0];
-        if($notify === 0):
+        if((int)$notify === 0):
             return false;
         else:
             return true;
@@ -127,7 +127,7 @@ class User extends Authenticatable
     public function getPushNotificationAttribute()
     {
         $notify = PushNotification::find($this->id)->pluck('is_subscribed')[0];
-        if($notify === 0):
+        if((int)$notify === 0):
             return false;
         else:
             return true;

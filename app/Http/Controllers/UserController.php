@@ -97,5 +97,10 @@ class UserController extends Controller
     {
         return $this->userService->fetchReports($userId);
     }
+
+    public function fetchStates()
+    {
+        return $this->userService->fetchStates();
+    }
     
 }

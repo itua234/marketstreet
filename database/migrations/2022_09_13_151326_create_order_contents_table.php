@@ -21,6 +21,8 @@ return new class extends Migration
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
             $table->string('price');
             $table->integer('quantity')->unsigned();
+            $table->enum('payment', ['pending', 'received'])->default('pending');
+            $table->enum('status', ['pending', 'shipped', 'delivered', 'confirmed', 'cancelled'])->default('pending');
             $table->timestamps();
         });
     }

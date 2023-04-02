@@ -46,6 +46,11 @@ class TransactionService
 
         $subOrders = $order->subOrders;
         foreach($subOrders as $subOrder):
+            $products = $subOrder->products;
+            foreach($products as $product):
+                $product->sales += 1;
+                $product->save();
+            endforeach;
             $owner = $subOrder->user;
             $profile = $owner->profile;
             $total = $subOrder->total;
@@ -90,6 +95,11 @@ class TransactionService
 
         $subOrders = $order->subOrders;
         foreach($subOrders as $subOrder):
+            $products = $subOrder->products;
+            foreach($products as $product):
+                $product->sales += 1;
+                $product->save();
+            endforeach;
             $owner = $subOrder->user;
             $profile = $owner->profile;
             $total = $subOrder->total;

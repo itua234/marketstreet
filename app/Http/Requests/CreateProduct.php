@@ -24,6 +24,7 @@ class CreateProduct extends FormRequest
             'description' => 'required',
             'shipping_cost' => ['required', 'numeric'],
             'is_negotiable' => 'integer',
+            'image.*' => 'required|mimes:jpeg,jpg,png,svg|max:2048',
         ];
     }
 

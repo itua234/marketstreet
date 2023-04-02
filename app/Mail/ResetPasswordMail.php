@@ -23,7 +23,7 @@ class ResetPasswordMail extends Mailable
 
     public function build()
     {
-        return $this->from(getenv('MAIL_FROM_ADDRESS'), "MarketStreet")
+        return $this->from(getenv('MAIL_FROM_ADDRESS'), "Peddle")
         ->subject("Password reset request")
         ->view('email.password_recovery');
     }

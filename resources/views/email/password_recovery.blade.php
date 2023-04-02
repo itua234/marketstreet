@@ -65,7 +65,7 @@
                         <h3><b>{{ $token }}</b></h3>
                     </div>
                     <div style="margin-top:80px;">
-                        <a href="{{env('APP_URL')}}verify/reset/token/?email={{$user->email}}&token={{$token}}" style="
+                        <a href="{{env('APP_URL')}}verify/reset/{{$user->email}}/{{$token}}" style="
                         background-color:#1D99A2;
                         color:white;
                         padding:12px 50px;
